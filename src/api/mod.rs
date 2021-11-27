@@ -10,7 +10,7 @@ pub mod tasks;
 
 /// Contains the `@odata.context` and `@odata.nextLink` properties of a Collection. 
 /// The latter contains the URL for the next page of results within the Collection. 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct OData {
     #[serde(rename = "@odata.context")] 
     pub context: Option<String>,
@@ -20,7 +20,7 @@ pub struct OData {
 }
 
 /// A general collection of results from the Graph API.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Collection<T> {
     pub value: Vec<T>,
 
@@ -34,7 +34,7 @@ pub struct Collection<T> {
 /// a custom deserialization process. 
 /// 
 /// See: https://docs.microsoft.com/en-us/graph/api/resources/datetimetimezone?view=graph-rest-1.0
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DateTimeTimeZone {
     pub date_time: String,
@@ -42,7 +42,7 @@ pub struct DateTimeTimeZone {
 }
 
 /// An attempt at a wrapper for handling either a successful response, or a response with an error.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum Response<T> {
     Success(T),
@@ -51,14 +51,14 @@ pub enum Response<T> {
 }
 
 /// An attempt at containing a response error.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorResponse {
     pub error: ErrorResponseError,
 }
 
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorResponseError {
     pub code: String,
@@ -68,7 +68,7 @@ pub struct ErrorResponseError {
     inner_error: ErrorResponseErrorInnerError
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorResponseErrorInnerError {
     date: String,

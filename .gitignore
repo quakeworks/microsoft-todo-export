@@ -1,1 +1,4 @@
 /target
+output.json
+output_sample.json
+.idea

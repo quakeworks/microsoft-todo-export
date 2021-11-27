@@ -4,7 +4,7 @@ use crate::api::{Date, DateTimeOffset, DateTimeTimeZone};
 /// Represents a single Todo List. 
 /// 
 /// See: https://docs.microsoft.com/en-us/graph/api/resources/todotasklist?view=graph-rest-1.0#properties
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct TodoTaskList {
     /// The name of the task list.
@@ -25,7 +25,7 @@ pub struct TodoTaskList {
 }
 
 /// The possible values of a `TodoTaskList` `wellknown_list_name`. 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum WellknownListName {
     None,
@@ -37,7 +37,7 @@ pub enum WellknownListName {
 /// Represents a single Task within a todo list. 
 /// 
 /// See: https://docs.microsoft.com/en-us/graph/api/resources/todotask?view=graph-rest-1.0
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TodoTask {
     /// The task body that typically contains information about the task.
@@ -86,7 +86,7 @@ pub struct TodoTask {
     // TODO: linkedResources
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum TaskStatus {
     NotStarted,
@@ -99,7 +99,7 @@ pub enum TaskStatus {
 /// Represents properties of the body of an item, such as a message, event or group post.
 /// 
 /// See: https://docs.microsoft.com/en-us/graph/api/resources/itembody?view=graph-rest-1.0
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ItemBody {
     /// The content of the item.
@@ -110,7 +110,7 @@ pub struct ItemBody {
 }
 
 /// The possible values of `content_type` for an `ItemBody`.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum BodyType {
     Text,
@@ -118,7 +118,7 @@ pub enum BodyType {
 }
 
 /// The possible `importance` values for a `TodoTask`. 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum Importance {
     Low,
@@ -129,7 +129,7 @@ pub enum Importance {
 /// The recurrence pattern and range for a `TodoTask`. 
 /// 
 /// See: https://docs.microsoft.com/en-us/graph/api/resources/patternedrecurrence?view=graph-rest-1.0
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PatternedRecurrence {
     /// The frequency of an event.
@@ -142,7 +142,7 @@ pub struct PatternedRecurrence {
 /// Describes the frequency by which a recurrning `TodoTask` repeats. 
 /// 
 /// See: https://docs.microsoft.com/en-us/graph/api/resources/recurrencepattern?view=graph-rest-1.0
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "type")]
 pub enum RecurrencePattern {
@@ -209,7 +209,7 @@ pub enum RecurrencePattern {
     }
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum DayOfWeek {
     Sunday,
@@ -224,7 +224,7 @@ pub enum DayOfWeek {
 /// Describes a date range over which a recurring `TodoTask` repeats.
 /// 
 /// See: https://docs.microsoft.com/en-us/graph/api/resources/recurrencerange?view=graph-rest-1.0
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "type")]
 pub enum RecurrenceRange {

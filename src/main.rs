@@ -3,7 +3,7 @@ extern crate serde;
 #[macro_use]
 extern crate derive_more;
 
-use std::io;
+use std::{fs, io};
 use serde::de::DeserializeOwned;
 
 mod error;
@@ -132,73 +132,39 @@ fn main() -> Result<()> {
     // To acquire OAuth token, grant all "Tasks" permissions within MS Graph Explorer, then click "Access Token"
     // See: https://blog.osull.com/2020/09/14/backup-migrate-microsoft-to-do-tasks-with-powershell-and-microsoft-graph/
     // See: https://gotoguy.blog/2020/05/06/oauth-authentication-to-microsoft-graph-with-powershell-core/
-    println!("Paste OAuth2 Token");
+    // println!("Paste OAuth2 Token");
 
     let mut token = String::new();
     io::stdin().read_line(&mut token).expect("Failed to read line");
     let token = token.trim();
 
-    println!();
-
     let client = reqwest::blocking::Client::new();
-    
-    let response = client.get(graph_url("/me"))
-        .bearer_auth(token)
-        .send()?;
-
-    let me = match response.json::<api::Response<api::user::User>>()? {
-        api::Response::Success(me) => me,
-        api::Response::Error(e) => {
-            println!("ERROR: Code: {} Message: {}", e.error.code, e.error.message);
-            return Ok(());
-        }
-    };
-
-    println!("User: {} / {}", me.display_name, me.user_principal_name);
 
     let lists: Collection<api::tasks::TodoTaskList> = client.get(graph_url("/me/todo/lists"))
         .bearer_auth(token)
         .send()?
         .json()?;
 
-    println!();
-    println!("Todo Lists:");
+    let mut output = vec![];
+    for list in lists.value.iter() {
+        let fetch_url = graph_url(&format!("/me/todo/lists/{}/tasks", list.id));
 
-    for (i, list) in lists.value.iter().enumerate() {
-        println!("{}. {}", i + 1, list.display_name);
-    }
+        let mut task_collection = CollectionReader::<api::tasks::TodoTask>::new(&client, &token);
+        task_collection.fetch(fetch_url)?;
 
-    println!();
-    println!("Enter number of list to fetch: ");
 
-    let selected_list: &api::tasks::TodoTaskList = {
-        loop {
-            let mut index_str = String::new();
-            io::stdin().read_line(&mut index_str).expect("Failed to read selected list!");
-            let selected_list_index: u32 = index_str.trim().parse()?;
-
-            let selected_list = lists.value.get((selected_list_index as usize) - 1);
-
-            if let Some(list) = selected_list {
-                break list;
-            }
+        let mut tasks = vec![];
+        for task in task_collection {
+            tasks.push(task);
         }
-    };
 
-    println!();
-    println!("Fetching list: {} ({})", selected_list.display_name, selected_list.id);
-
-    let fetch_url = graph_url(&format!("/me/todo/lists/{}/tasks", selected_list.id));
-
-    let mut task_collection = CollectionReader::<api::tasks::TodoTask>::new(&client, &token);
-    task_collection.fetch(fetch_url)?;
-
-    println!();
-    println!("Tasks: ");
-
-    for task in task_collection {
-        println!("{}", task.title);
+        if tasks.len() > 0 {
+            output.push(tasks);
+        }
     }
+
+    let string = serde_json::to_string(&output)?;
+    fs::write("output.json", string)?;
 
     Ok(())
 }
