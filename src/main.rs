@@ -7,11 +7,10 @@ use std::{fs, io};
 use serde::de::DeserializeOwned;
 
 mod error;
-mod api;
 
-use api::Collection;
 use error::Result;
-use crate::api::tasks::{TodoTask, WellknownListName};
+use quake_microsoft_todo::Collection;
+use quake_microsoft_todo::tasks::{TodoTask, WellknownListName};
 
 const GRAPH_BASE_URI: &str = "https://graph.microsoft.com/beta";
 
@@ -24,7 +23,7 @@ struct CollectionReader<'a, T> where T: DeserializeOwned + Clone {
     token: &'a str,
 
     /// The `Collection` to read.
-    collection: Option<api::Collection<T>>,
+    collection: Option<Collection<T>>,
 
     /// The full list of `items` which have been read from the `Collection` so far.
     items: Vec<T>,
@@ -150,7 +149,7 @@ fn main() -> Result<()> {
 
     let client = reqwest::blocking::Client::new();
 
-    let lists: Collection<api::tasks::TodoTaskList> = client.get(graph_url("/me/todo/lists"))
+    let lists: Collection<quake_microsoft_todo::tasks::TodoTaskList> = client.get(graph_url("/me/todo/lists"))
         .bearer_auth(token)
         .send()?
         .json()?;
@@ -159,7 +158,7 @@ fn main() -> Result<()> {
     for list in lists.value.iter() {
         let fetch_url = graph_url(&format!("/me/todo/lists/{}/tasks", &list.id));
 
-        let mut task_collection = CollectionReader::<api::tasks::TodoTask>::new(&client, &token);
+        let mut task_collection = CollectionReader::<quake_microsoft_todo::tasks::TodoTask>::new(&client, &token);
         task_collection.fetch(fetch_url)?;
 
         let list1 = OutputList {

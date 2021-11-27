@@ -1,7 +1,6 @@
+use crate::{Date, DateTimeOffset, DateTimeTimeZone};
 
-use crate::api::{Date, DateTimeOffset, DateTimeTimeZone};
-
-/// Represents a single Todo List. 
+/// Represents a single Todo List.
 /// 
 /// See: https://docs.microsoft.com/en-us/graph/api/resources/todotasklist?view=graph-rest-1.0#properties
 #[derive(Serialize, Deserialize, Debug)]
