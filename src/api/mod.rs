@@ -1,8 +1,6 @@
 pub type Date = String;
 pub type DateTimeOffset = String;
-pub type StringCollection = Vec<String>;
 
-pub mod user;
 pub mod tasks;
 
 /// Contains the `@odata.context` and `@odata.nextLink` properties of a Collection. 
