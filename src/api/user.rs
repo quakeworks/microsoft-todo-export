@@ -1,6 +1,5 @@
 
 pub type DateTimeOffset = String;
-pub type StringCollection = Vec<String>;
 
 /// Represents a `User` resource type.
 /// 

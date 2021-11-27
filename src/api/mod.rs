@@ -1,6 +1,3 @@
-
-use serde::de::Deserialize;
-
 pub type Date = String;
 pub type DateTimeOffset = String;
 pub type StringCollection = Vec<String>;

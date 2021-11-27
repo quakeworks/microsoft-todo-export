@@ -11,6 +11,7 @@ mod api;
 
 use api::Collection;
 use error::Result;
+use crate::api::tasks::{TodoTask, WellknownListName};
 
 const GRAPH_BASE_URI: &str = "https://graph.microsoft.com/beta";
 
@@ -128,11 +129,20 @@ fn graph_url(path: &str) -> String {
     format!("{}{}", GRAPH_BASE_URI, path)
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct OutputList {
+    pub display_name: String,
+    pub id: String,
+    pub wellknown_list_name: WellknownListName,
+    pub children: Vec<TodoTask>
+}
+
 fn main() -> Result<()> {
     // To acquire OAuth token, grant all "Tasks" permissions within MS Graph Explorer, then click "Access Token"
     // See: https://blog.osull.com/2020/09/14/backup-migrate-microsoft-to-do-tasks-with-powershell-and-microsoft-graph/
     // See: https://gotoguy.blog/2020/05/06/oauth-authentication-to-microsoft-graph-with-powershell-core/
-    // println!("Paste OAuth2 Token");
+    println!("Paste OAuth2 Token");
 
     let mut token = String::new();
     io::stdin().read_line(&mut token).expect("Failed to read line");
@@ -145,26 +155,25 @@ fn main() -> Result<()> {
         .send()?
         .json()?;
 
-    let mut output = vec![];
+    let mut output: Vec<OutputList> = vec![];
     for list in lists.value.iter() {
-        let fetch_url = graph_url(&format!("/me/todo/lists/{}/tasks", list.id));
+        let fetch_url = graph_url(&format!("/me/todo/lists/{}/tasks", &list.id));
 
         let mut task_collection = CollectionReader::<api::tasks::TodoTask>::new(&client, &token);
         task_collection.fetch(fetch_url)?;
 
+        let list1 = OutputList {
+            display_name: list.display_name.to_string(),
+            id: list.id.to_string(),
+            wellknown_list_name: list.wellknown_list_name.clone(),
+            children: task_collection.items
+        };
 
-        let mut tasks = vec![];
-        for task in task_collection {
-            tasks.push(task);
-        }
-
-        if tasks.len() > 0 {
-            output.push(tasks);
-        }
+        output.push(list1);
     }
 
-    let string = serde_json::to_string(&output)?;
-    fs::write("output.json", string)?;
+    let string = serde_json::to_string(&output).unwrap();
+    fs::write("output.json", string).unwrap();
 
     Ok(())
 }
