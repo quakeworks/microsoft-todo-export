@@ -1,9 +1,19 @@
 [package]
 name = "quake_microsoft_todo"
 version = "0.1.0"
-edition = "2021"
+authors = ["Marcus Ball <marcus.ball@live.com>", "Phodal HUANG<h@phodal.com>"]
+edition = "2018"
+description = """
+The model of microsoft todo
+"""
+documentation = "https://github.com/quakeworks/microsoft-todo-export"
+repository = "https://github.com/quakeworks/microsoft-todo-export"
+readme = "README.md"
+license = "MIT"
+exclude = ["_fixtures/*"]
+autoexamples = true
+keywords = ["microsoft", "todo"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 serde = { version = "1.0.106", features = ["derive"] }
