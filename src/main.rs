@@ -242,24 +242,22 @@ fn main() -> Result<()> {
     // To acquire OAuth token, grant all "Tasks" permissions within MS Graph Explorer, then click "Access Token"
     // See: https://blog.osull.com/2020/09/14/backup-migrate-microsoft-to-do-tasks-with-powershell-and-microsoft-graph/
     // See: https://gotoguy.blog/2020/05/06/oauth-authentication-to-microsoft-graph-with-powershell-core/
-    // println!("Paste OAuth2 Token");
-    //
-    // let mut token = String::new();
-    // io::stdin().read_line(&mut token).expect("Failed to read line");
-    // let token = token.trim();
+    println!("Paste OAuth2 Token");
 
-    // dump_todos(token);
+    let mut token = String::new();
+    io::stdin().read_line(&mut token).expect("Failed to read line");
+    let token = token.trim();
 
-    // onenote::dump_onenotes(token);
+    onenote::dump_onenotes(token);
 
-    let user_id = "";
-    let client = Graph::new(token);
-    download_pages(&client, user_id);
+    // let user_id = "";
+    // let client = Graph::new(token);
+    // download_pages(&client, user_id);
 
     Ok(())
 }
 
-fn download_pages(client: &GraphBlocking, user_id: &str) {
+fn download_pages(client: &Graph<BlockingHttpClient>, user_id: &str) {
     let content = fs::read_to_string("sections-output.json").unwrap();
     let sections: Vec<SectionVO> = serde_json::from_str(&content).unwrap();
 

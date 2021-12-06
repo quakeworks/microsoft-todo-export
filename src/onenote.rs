@@ -11,7 +11,7 @@ use crate::{NotebookVO, OnenoteVO, PageVO, SectionVO};
 
 pub fn dump_onenotes(token: &str) {
     let client = Graph::new(token);
-    let user_id: &str = "";
+    let user_id: &str = "gmszone@live.com";
 
     // let (urls, onenote_vo) = download_sections_from_top(&client, user_id);
 
@@ -228,6 +228,7 @@ fn fetch_pages(client: &Graph<BlockingHttpClient>, user_id: &str, urls: &mut Vec
                     sourceUrl: page.url().to_string(),
                     id: value["id"].as_str().unwrap().to_string(),
                     createdDateTime: value["createdDateTime"].as_str().unwrap().to_string(),
+                    lastModifiedDateTime: value["lastModifiedDateTime"].as_str().unwrap().to_string(),
                     title: title.clone(),
                     contentUrl: content_url.to_string(),
                 };
