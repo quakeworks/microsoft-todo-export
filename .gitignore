@@ -2,3 +2,7 @@
 output.json
 output_sample.json
 .idea
+*.json
+tokens
+urls_repos
+urls
