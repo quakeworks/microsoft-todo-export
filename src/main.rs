@@ -4,18 +4,16 @@ extern crate serde;
 extern crate derive_more;
 
 use std::{fs, io};
-use std::error::Error;
-use std::path::PathBuf;
 use graph_rs_sdk::client::Graph;
-use graph_rs_sdk::prelude::Delta;
-use reqwest::blocking::Client;
+use graph_rs_sdk::prelude::GraphResponse;
+use graph_rs_sdk::serde_json::Value;
 use serde::de::DeserializeOwned;
 
 mod error;
 
 use error::Result;
 use quake_microsoft_todo::Collection;
-use quake_microsoft_todo::tasks::{TodoTask, TodoTaskList, WellknownListName};
+use quake_microsoft_todo::tasks::{TodoTask, WellknownListName};
 
 const GRAPH_BASE_URI: &str = "https://graph.microsoft.com/beta";
 
@@ -225,8 +223,8 @@ fn main() -> Result<()> {
     // To acquire OAuth token, grant all "Tasks" permissions within MS Graph Explorer, then click "Access Token"
     // See: https://blog.osull.com/2020/09/14/backup-migrate-microsoft-to-do-tasks-with-powershell-and-microsoft-graph/
     // See: https://gotoguy.blog/2020/05/06/oauth-authentication-to-microsoft-graph-with-powershell-core/
-    // println!("Paste OAuth2 Token");
-    //
+    println!("Paste OAuth2 Token");
+
     let mut token = String::new();
     io::stdin().read_line(&mut token).expect("Failed to read line");
     let token = token.trim();
@@ -269,6 +267,8 @@ fn dump_onenotes(token: &str) {
                     sections: vec![],
                 };
 
+                println!("bookName: {:}", book_name.to_string());
+
                 let get_sections = client
                     .v1()
                     .user(user_id)
@@ -277,47 +277,13 @@ fn dump_onenotes(token: &str) {
                     .list_sections()
                     .send();
 
-                if let Ok(section) = get_sections {
-                    let vec = section.body()["value"].as_array().unwrap();
-                    for value in vec.iter() {
-                        let section_id = value["id"].as_str().unwrap();
-                        let section_name = value["displayName"].as_str().unwrap();
-
-                        let mut section_vo = SectionVO {
-                            id: section_id.to_string(),
-                            createdDateTime: value["createdDateTime"].as_str().unwrap().to_string(),
-                            displayName: section_name.to_string(),
-                            lastModifiedDateTime: value["lastModifiedDateTime"].as_str().unwrap().to_string(),
-                            pages: vec![],
-                        };
-
-                        let get_pages = client
-                            .v1()
-                            .user(user_id)
-                            .onenote()
-                            .section(section_id)
-                            .list_pages()
-                            .send();
-
-                        if let Ok(section) = get_pages {
-                            let vec = section.body()["value"].as_array().unwrap();
-                            for value in vec.iter() {
-                                let content_url = value["contentUrl"].as_str().unwrap();
-
-                                urls.push(content_url.clone().to_string());
-
-                                let page_vo = PageVO {
-                                    id: value["id"].as_str().unwrap().to_string(),
-                                    createdDateTime: value["createdDateTime"].as_str().unwrap().to_string(),
-                                    title: value["title"].as_str().unwrap().to_string(),
-                                    contentUrl: content_url.to_string(),
-                                };
-
-                                section_vo.pages.push(page_vo);
-                            };
-                        }
-
-                        notebook_vo.sections.push(section_vo);
+                match get_sections {
+                    Ok(section) => {
+                        let mut sections = build_sections(&client, user_id, &mut urls, section);
+                        notebook_vo.sections.append(&mut sections);
+                    }
+                    Err(err) => {
+                        println!("{:?}", err);
                     }
                 }
 
@@ -333,6 +299,58 @@ fn dump_onenotes(token: &str) {
     fs::write("onenote-output.json", string).unwrap();
 
     fs::write("urls", urls.join("\n")).unwrap();
+}
+
+fn build_sections(client: &GraphBlocking, user_id: &str, urls: &mut Vec<String>, section: GraphResponse<Value>) -> Vec<SectionVO> {
+    let vec = section.body()["value"].as_array().unwrap();
+    let mut sections: Vec<SectionVO> = vec![];
+    for value in vec.iter() {
+        let section_id = value["id"].as_str().unwrap();
+        let section_name = value["displayName"].as_str().unwrap();
+
+        let mut section_vo = SectionVO {
+            id: section_id.to_string(),
+            createdDateTime: value["createdDateTime"].as_str().unwrap().to_string(),
+            displayName: section_name.to_string(),
+            lastModifiedDateTime: value["lastModifiedDateTime"].as_str().unwrap().to_string(),
+            pages: vec![],
+        };
+
+        let get_pages = client
+            .v1()
+            .user(user_id)
+            .onenote()
+            .section(section_id)
+            .list_pages()
+            .send();
+
+        match get_pages {
+            Ok(section) => {
+                let vec = section.body()["value"].as_array().unwrap();
+                for value in vec.iter() {
+                    let content_url = value["contentUrl"].as_str().unwrap();
+
+                    urls.push(content_url.clone().to_string());
+
+                    let page_vo = PageVO {
+                        id: value["id"].as_str().unwrap().to_string(),
+                        createdDateTime: value["createdDateTime"].as_str().unwrap().to_string(),
+                        title: value["title"].as_str().unwrap().to_string(),
+                        contentUrl: content_url.to_string(),
+                    };
+
+                    section_vo.pages.push(page_vo);
+                };
+            }
+            Err(err) => {
+                println!("{:?}", err);
+            }
+        }
+
+        sections.push(section_vo);
+    }
+
+    sections
 }
 
 fn dump_todos(token: &str) -> Result<()> {
@@ -369,4 +387,9 @@ fn dump_todos(token: &str) -> Result<()> {
     fs::write("output.json", string).unwrap();
 
     Ok(())
+}
+
+pub fn download(str: &str) {
+    // https://github.com/sreeise/graph-rs/blob/e8c9985d986b76f4640bb7825115695ceda6804b/tests/async_drive_request.rs
+
 }
