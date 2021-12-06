@@ -1006,8 +1006,11 @@ name = "microsoft-todo-export"
 version = "0.1.0"
 dependencies = [
  "derive_more",
+ "graph-http",
  "graph-rs-sdk",
+ "lazy_static",
  "quake_microsoft_todo",
+ "regex",
  "reqwest",
  "serde",
  "serde_json",
