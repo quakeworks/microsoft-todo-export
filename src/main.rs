@@ -4,6 +4,7 @@ extern crate serde;
 extern crate derive_more;
 
 use std::{fs, io};
+use std::collections::HashMap;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use graph_http::{BlockingDownloadError, BlockingHttpClient};
@@ -21,6 +22,7 @@ mod todo;
 use error::Result;
 use quake_microsoft_todo::Collection;
 use quake_microsoft_todo::tasks::{TodoTask, WellknownListName};
+use crate::onenote::download_page;
 
 const GRAPH_BASE_URI: &str = "https://graph.microsoft.com/beta";
 
@@ -238,15 +240,52 @@ fn main() -> Result<()> {
     // To acquire OAuth token, grant all "Tasks" permissions within MS Graph Explorer, then click "Access Token"
     // See: https://blog.osull.com/2020/09/14/backup-migrate-microsoft-to-do-tasks-with-powershell-and-microsoft-graph/
     // See: https://gotoguy.blog/2020/05/06/oauth-authentication-to-microsoft-graph-with-powershell-core/
-    println!("Paste OAuth2 Token");
-
-    let mut token = String::new();
-    io::stdin().read_line(&mut token).expect("Failed to read line");
-    let token = token.trim();
+    // println!("Paste OAuth2 Token");
+    //
+    // let mut token = String::new();
+    // io::stdin().read_line(&mut token).expect("Failed to read line");
+    // let token = token.trim();
 
     // dump_todos(token);
 
-    onenote::dump_onenotes(token);
+    // onenote::dump_onenotes(token);
+
+    let user_id = "";
+    let client = Graph::new(token);
+    download_pages(&client, user_id);
 
     Ok(())
+}
+
+fn download_pages(client: &GraphBlocking, user_id: &str) {
+    let content = fs::read_to_string("sections-output.json").unwrap();
+    let sections: Vec<SectionVO> = serde_json::from_str(&content).unwrap();
+
+    let mut urls: Vec<String> = vec![];
+    let mut id_url_map: HashMap<String, String> = HashMap::new();
+    for section in &sections {
+        for page in &section.pages {
+            id_url_map.insert(page.id.clone(), page.contentUrl.clone());
+            urls.push(page.contentUrl.clone());
+        }
+    }
+
+    fs::write("urls", urls.join("\n")).unwrap();
+
+    let mut fails = download(&client, &mut id_url_map, user_id);
+
+    while !fails.is_empty() {
+        fails = download(&client, &mut id_url_map, user_id);
+    }
+}
+
+fn download(client: &Graph<BlockingHttpClient>, id_url_map: &mut HashMap<String, String>, user_id: &str) -> HashMap<String, String> {
+    let mut fails: HashMap<String, String> = HashMap::new();
+    for (id, url) in id_url_map {
+        println!("downloading {:?}", url);
+        if download_page(&client, user_id, id.as_str()).is_err() {
+            fails.insert(id.to_string(), url.to_string());
+        }
+    }
+    fails
 }

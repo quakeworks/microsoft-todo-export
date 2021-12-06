@@ -1,7 +1,8 @@
 use std::ffi::OsString;
 use std::fs;
+use std::path::PathBuf;
 
-use graph_http::{BlockingHttpClient, GraphResponse};
+use graph_http::{BlockingDownloadError, BlockingHttpClient, GraphResponse};
 use graph_http::serde_json::Value;
 use graph_http::traits::ODataLink;
 use graph_rs_sdk::client::Graph;
@@ -251,7 +252,7 @@ fn fetch_pages(client: &Graph<BlockingHttpClient>, user_id: &str, urls: &mut Vec
     pages
 }
 
-fn download_page(client: &Graph<BlockingHttpClient>, user_id: &str, page_id: &str) {
+pub fn download_page(client: &Graph<BlockingHttpClient>, user_id: &str, page_id: &str) -> Result<PathBuf, BlockingDownloadError> {
     let download_page = client
         .v1()
         .user(user_id)
@@ -261,8 +262,5 @@ fn download_page(client: &Graph<BlockingHttpClient>, user_id: &str, page_id: &st
 
     download_page.rename(OsString::from(format!("{:}.html", page_id)));
     let result = download_page.send();
-
-    if let Err(err) = result {
-        println!("{:?}", err);
-    }
+    result
 }
