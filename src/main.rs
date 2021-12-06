@@ -219,6 +219,7 @@ pub struct PageVO {
     pub sourceUrl: String,
     pub id: String,
     pub createdDateTime: String,
+    pub lastModifiedDateTime: String,
     pub title: String,
     pub contentUrl: String,
 }
@@ -229,6 +230,7 @@ impl Default for PageVO {
             sourceUrl: "".to_string(),
             id: "".to_string(),
             createdDateTime: "".to_string(),
+            lastModifiedDateTime: "".to_string(),
             title: "".to_string(),
             contentUrl: "".to_string(),
         }
